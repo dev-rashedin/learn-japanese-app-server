@@ -12,7 +12,7 @@ const corsOptions = {
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
-    'learnjapanese-with-ease.vercel.app',
+    'https://learjapaneese.web.app',
   ],
   // credentials: true,
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -24,10 +24,20 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 
+
+// database connection with mongoose
+
+mongoose
+  .connect(`${process.env.MONGODB_URI}`)
+  .then(() => console.log('connection established'))
+  .catch((err) => console.error(err));
+
+
+
 app.get('/', (req, res) => {
-  res.send('learnjapanese-with-ease server is running');
+  res.send('learnjapanese server is running');
 });
 
 app.listen(port, () => {
-  console.log(`learnjapanese-with-ease server is running on port ${port}`);
+  console.log(`learnjapanese server is running on port ${port}`);
 });
