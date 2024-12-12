@@ -131,7 +131,7 @@ async function run() {
       next();
     };
 
-    app.get('/users', verifyAdmin, async (req, res) => {
+    app.get('/users', async (req, res) => {
       try {
         const result = await userCollection.find().toArray();
         res.send(result);
@@ -263,24 +263,18 @@ async function run() {
     });
 
     // vocabulary related api
-     app.get('/vocabularies', async (req, res) => {
-       const page = parseInt(req.query.page) || 0;
-       const size = parseInt(req.query.size) || 6;
-       const status = req.query.status;
+
+    //  get all vocabulary
+    app.get('/vocabularies', async (req, res) => {
+      const page = 0;
+       const size =  10;
        const filter = req.query.filter;
-       const search = req.query.search;
-       const sort = req.query.sort;
 
        let query = {};
 
-       if (search) {
-         query.title = { $regex: search, $options: 'i' };
-       }
-       if (status) {
-         query.status = status;
-       }
+
        if (filter) {
-         query.publisher = filter;
+         query.lessonNo = filter;
        }
 
        try {
@@ -288,21 +282,6 @@ async function run() {
            .aggregate([
              {
                $match: query,
-             },
-             {
-               $addFields: {
-                 posted_time_as_date: {
-                   $dateFromString: {
-                     dateString: '$posted_time',
-                     format: '%m/%d/%Y',
-                     onError: 'Invalid Date',
-                     onNull: 'No Date',
-                   },
-                 },
-               },
-             },
-             {
-               $sort: { posted_time_as_date: sort === 'asc' ? 1 : -1 },
              },
              {
                $skip: page * size,
@@ -317,6 +296,18 @@ async function run() {
        } catch (error) {
          console.error('Error fetching vocabularies:', error.message);
          res.status(500).send(error.message);
+       }
+    });
+  
+    // post vocabulary
+     app.post('/vocabularies', async (req, res) => {
+       try {
+         const vocabularyData = req.body;
+
+         const result = await vocabularyCollection.insertOne(vocabularyData);
+         return res.send(result);
+       } catch (error) {
+         return res.send(error);
        }
      });
 
