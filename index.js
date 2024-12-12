@@ -85,9 +85,9 @@ async function run() {
 
     const userCollection = client.db('learnJapaneseDB').collection('users');
     const lessonCollection = client.db('learnJapaneseDB').collection('lessons');
-     const vocabularyCollection = client
-       .db('learnJapaneseDB')
-       .collection('vocabularies');
+    const vocabularyCollection = client
+      .db('learnJapaneseDB')
+      .collection('vocabularies');
 
     // auth related api
     app.post('/jwt', async (req, res) => {
@@ -267,49 +267,77 @@ async function run() {
     //  get all vocabulary
     app.get('/vocabularies', async (req, res) => {
       const page = 0;
-       const size =  10;
-       const filter = req.query.filter;
+      const size = 45;
+      const filter = req.query.filter;
 
-       let query = {};
+      let query = {};
 
+      if (filter) {
+        query.lessonNo = filter;
+      }
 
-       if (filter) {
-         query.lessonNo = filter;
-       }
+      try {
+        const result = await vocabularyCollection
+          .aggregate([
+            {
+              $match: query,
+            },
+            {
+              $skip: page * size,
+            },
+            {
+              $limit: size,
+            },
+          ])
+          .toArray();
 
-       try {
-         const result = await vocabularyCollection
-           .aggregate([
-             {
-               $match: query,
-             },
-             {
-               $skip: page * size,
-             },
-             {
-               $limit: size,
-             },
-           ])
-           .toArray();
-
-         res.status(200).send(result);
-       } catch (error) {
-         console.error('Error fetching vocabularies:', error.message);
-         res.status(500).send(error.message);
-       }
+        res.status(200).send(result);
+      } catch (error) {
+        console.error('Error fetching vocabularies:', error.message);
+        res.status(500).send(error.message);
+      }
     });
-  
-    // post vocabulary
-     app.post('/vocabularies', async (req, res) => {
-       try {
-         const vocabularyData = req.body;
 
-         const result = await vocabularyCollection.insertOne(vocabularyData);
-         return res.send(result);
-       } catch (error) {
-         return res.send(error);
-       }
-     });
+    // post vocabulary
+    app.post('/vocabularies', async (req, res) => {
+      try {
+        const vocabularyData = req.body;
+
+        const result = await vocabularyCollection.insertOne(vocabularyData);
+        return res.send(result);
+      } catch (error) {
+        return res.send(error);
+      }
+    });
+
+    // update vocabulary
+    app.patch('/update-vocabulary/:id', verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const updatedVocabulary = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: { ...updatedVocabulary },
+      };
+
+      try {
+        const result = await vocabularyCollection.updateOne(
+          filter,
+          updatedDoc
+        );
+        return res.send(result);
+      } catch (error) {
+        return res.send(error.message);
+      }
+    });
+
+    // delete a article
+    app.delete('/delete-vocabulary/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await vocabularyCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
