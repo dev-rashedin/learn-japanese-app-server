@@ -241,6 +241,7 @@ async function run() {
     });
 
     // lesson related api
+    // getting all lesson
     app.get('/lessons', async (req, res) => {
       try {
         const result = await lessonCollection.find().toArray();
@@ -250,7 +251,7 @@ async function run() {
       }
     });
 
-    // create lesson
+    // create a lesson
     app.post('/lessons', async (req, res) => {
       try {
         const lessonData = req.body;
@@ -260,6 +261,15 @@ async function run() {
       } catch (error) {
         return res.send(error);
       }
+    });
+
+    // delete a lesson
+    app.delete('/delete-lesson/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await lessonCollection.deleteOne(query);
+      res.send(result);
     });
 
     // vocabulary related api
