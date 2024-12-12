@@ -85,6 +85,9 @@ async function run() {
 
     const userCollection = client.db('learnJapaneseDB').collection('users');
     const lessonCollection = client.db('learnJapaneseDB').collection('lessons');
+     const vocabularyCollection = client
+       .db('learnJapaneseDB')
+       .collection('vocabularies');
 
     // auth related api
     app.post('/jwt', async (req, res) => {
@@ -258,6 +261,64 @@ async function run() {
         return res.send(error);
       }
     });
+
+    // vocabulary related api
+     app.get('/vocabularies', async (req, res) => {
+       const page = parseInt(req.query.page) || 0;
+       const size = parseInt(req.query.size) || 6;
+       const status = req.query.status;
+       const filter = req.query.filter;
+       const search = req.query.search;
+       const sort = req.query.sort;
+
+       let query = {};
+
+       if (search) {
+         query.title = { $regex: search, $options: 'i' };
+       }
+       if (status) {
+         query.status = status;
+       }
+       if (filter) {
+         query.publisher = filter;
+       }
+
+       try {
+         const result = await vocabularyCollection
+           .aggregate([
+             {
+               $match: query,
+             },
+             {
+               $addFields: {
+                 posted_time_as_date: {
+                   $dateFromString: {
+                     dateString: '$posted_time',
+                     format: '%m/%d/%Y',
+                     onError: 'Invalid Date',
+                     onNull: 'No Date',
+                   },
+                 },
+               },
+             },
+             {
+               $sort: { posted_time_as_date: sort === 'asc' ? 1 : -1 },
+             },
+             {
+               $skip: page * size,
+             },
+             {
+               $limit: size,
+             },
+           ])
+           .toArray();
+
+         res.status(200).send(result);
+       } catch (error) {
+         console.error('Error fetching vocabularies:', error.message);
+         res.status(500).send(error.message);
+       }
+     });
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
