@@ -7,7 +7,6 @@ const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 
-
 // middleware
 const corsOptions = {
   origin: [
@@ -19,7 +18,6 @@ const corsOptions = {
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   optionSuccessStatus: 200,
 };
-
 
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -58,14 +56,10 @@ const sendEmail = (emailAddress, emailData) => {
       console.error(error);
     } else {
       console.log('Email Sent ' + info.response);
-       console.log('Message sent: %s', info.messageId);
+      console.log('Message sent: %s', info.messageId);
     }
   });
 };
-
-
-
-
 
 // database connection with mongoose
 
@@ -73,26 +67,24 @@ const sendEmail = (emailAddress, emailData) => {
 let client;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.4qgkjzt.mongodb.net/learnJapaneseDB?retryWrites=true&w=majority&appName=Cluster0`;
-  
-
 
 async function run() {
-
-    if (!client) {
-      // Create a new MongoClient if it doesn't exist
-      client = new MongoClient(uri, {
-        serverApi: {
-          version: ServerApiVersion.v1,
-          strict: true,
-          deprecationErrors: true,
-        },
-      });
-    }
+  if (!client) {
+    // Create a new MongoClient if it doesn't exist
+    client = new MongoClient(uri, {
+      serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+      },
+    });
+  }
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
     const userCollection = client.db('learnJapaneseDB').collection('users');
+    const lessonCollection = client.db('learnJapaneseDB').collection('lessons');
 
     // auth related api
     app.post('/jwt', async (req, res) => {
@@ -136,7 +128,7 @@ async function run() {
       next();
     };
 
-    app.get('/users', verifyToken, verifyAdmin, async (req, res) => {
+    app.get('/users', verifyAdmin, async (req, res) => {
       try {
         const result = await userCollection.find().toArray();
         res.send(result);
@@ -146,7 +138,7 @@ async function run() {
     });
 
     // get specific user
-    app.get('/users/:email', verifyToken, async (req, res) => {
+    app.get('/users/:email', async (req, res) => {
       try {
         const email = req.params.email;
 
@@ -245,6 +237,27 @@ async function run() {
       }
     });
 
+    // lesson related api
+    app.get('/lessons', async (req, res) => {
+      try {
+        const result = await lessonCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        return res.send(error);
+      }
+    });
+
+    // create lesson
+    app.post('/lessons', async (req, res) => {
+      try {
+        const lessonData = req.body;
+
+        const result = await lessonCollection.insertOne(lessonData);
+        return res.send(result);
+      } catch (error) {
+        return res.send(error);
+      }
+    });
 
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
@@ -258,36 +271,29 @@ async function run() {
 }
 run().catch(console.dir);
 
+app.post('/jwt', async (req, res) => {
+  const user = req.body;
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: '7d',
+  });
 
+  res.send({ token });
+});
 
+// middlewares
 
+// verify admin middleware
+const verifyAdmin = async (req, res, next) => {
+  const user = req.decoded;
 
-    app.post('/jwt', async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: '7d',
-      });
-      
-      res.send({ token });
-    });
+  const query = { email: user?.email };
+  const result = await userCollection.findOne(query);
 
-    // middlewares
+  if (!result || result?.role !== 'admin')
+    return res.status(401).send({ message: 'unauthorized access!!' });
 
-    // verify admin middleware
-    const verifyAdmin = async (req, res, next) => {
-      const user = req.decoded;
-
-      const query = { email: user?.email };
-      const result = await userCollection.findOne(query);
-
-      if (!result || result?.role !== 'admin')
-        return res.status(401).send({ message: 'unauthorized access!!' });
-
-      next();
+  next();
 };
-
-
-
 
 app.get('/', (req, res) => {
   res.send('learnjapanese server is running');
@@ -296,4 +302,3 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`learnjapanese server is running on port ${port}`);
 });
-
