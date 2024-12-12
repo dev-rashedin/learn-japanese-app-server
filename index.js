@@ -339,6 +339,20 @@ async function run() {
       res.send(result);
     });
 
+    // get vocabulary counts
+    app.get('/vocabulary-counts', async (req, res) => {
+      try {
+        const result = await vocabularyCollection.aggregate([
+          { $group: { _id: '$LessonNo', count: { $sum: 1 } } },
+        ]).toArray();
+
+        res.status(200).json(result);
+      } catch (error) {
+        console.error('Error fetching vocabulary count:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 });
     console.log(
