@@ -263,6 +263,22 @@ async function run() {
       }
     });
 
+    // update a lesson
+ app.patch('/update-lesson/:id', async (req, res) => {
+   const id = req.params.id;
+   const updatedLesson = req.body;
+   const filter = { _id: new ObjectId(id) };
+   const updatedDoc = {
+     $set: { ...updatedLesson },
+   };
+
+   try {
+     const result = await lessonCollection.updateOne(filter, updatedDoc);
+     return res.send(result);
+   } catch (error) {
+     return res.send(error.message);
+   }
+ });
     // delete a lesson
     app.delete('/delete-lesson/:id', async (req, res) => {
       const id = req.params.id;
