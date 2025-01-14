@@ -68,6 +68,9 @@ let client;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.4qgkjzt.mongodb.net/learnJapaneseDB?retryWrites=true&w=majority&appName=Cluster0`;
 
+console.log(uri)
+
+
 async function run() {
   if (!client) {
     // Create a new MongoClient if it doesn't exist
@@ -337,7 +340,7 @@ async function run() {
     });
 
     // update vocabulary
-    app.patch('/update-vocabulary/:id', verifyToken, async (req, res) => {
+    app.patch('/update-vocabulary/:id', async (req, res) => {
       const id = req.params.id;
       const updatedVocabulary = req.body;
       const filter = { _id: new ObjectId(id) };
