@@ -6,6 +6,8 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
+const OpenAI = require('openai');
+
 
 // middleware
 const corsOptions = {
@@ -61,14 +63,21 @@ const sendEmail = (emailAddress, emailData) => {
   });
 };
 
-// database connection with mongoose
+// OpenAI Configuration
+const openai = new OpenAI({
+  apiKey: `${process.env.OPENAI_API_KEY}`,
+});
+
+// console.log(openai);
+
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 let client;
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.4qgkjzt.mongodb.net/learnJapaneseDB`;
 
-console.log(uri)
+// console.log(uri)
 
 
 async function run() {
@@ -133,6 +142,32 @@ async function run() {
 
       next();
     };
+
+    // chat with ai api
+    app.post('/api/chat', async (req, res) => {
+      const { message } = req.body;
+      console.log(message);
+      
+
+      if (!message) {
+        return res.status(400).json({ error: 'Message is required.' });
+      }
+
+      try {
+        const chatCompletion = await openai.chat.completions.create({
+          messages: [{ role: 'user', content: message }],
+          model: 'gpt-3.5-turbo',
+        });
+
+        const reply = chatCompletion.choices[0].message.content;
+
+        res.status(200).json({ reply });
+      } catch (error) {
+        console.error('Error in OpenAI API call:', error);
+        res.status(500).json({ error: 'Failed to process the request.' });
+      }
+    });
+
 
     app.get('/users', async (req, res) => {
       try {
