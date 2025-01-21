@@ -7,6 +7,9 @@ const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
+const crypto = require('crypto');
+
+
 
 
 // middleware
@@ -23,6 +26,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// get random session id
+const sessionId = crypto.randomUUID(); // Example: '08e8b0a3-24f3-4f6c-8f6e-9e1e8908660d'
+console.log(sessionId);
 
 // send email
 const sendEmail = (emailAddress, emailData) => {
@@ -164,7 +171,7 @@ async function run() {
         res.status(200).json({ reply });
       } catch (error) {
         console.error('Error in OpenAI API call:', error);
-        res.status(500).json({ error: 'Failed to process the request.' });
+        res.status(500).json({ error: error.message });
       }
     });
 
