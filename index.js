@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
 const crypto = require('crypto');
-
+const { chat } = require('blacksand');
 
 
 
@@ -28,7 +28,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // get random session id
-const sessionId = crypto.randomUUID(); // Example: '08e8b0a3-24f3-4f6c-8f6e-9e1e8908660d'
+const sessionId = crypto.randomUUID(); 
 console.log(sessionId);
 
 // send email
@@ -174,6 +174,8 @@ async function run() {
         res.status(500).json({ error: error.message });
       }
     });
+
+    // chat with blackSand api
 
 
     app.get('/users', async (req, res) => {
