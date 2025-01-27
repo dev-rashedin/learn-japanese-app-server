@@ -8,7 +8,6 @@ const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
 const crypto = require('crypto');
-const { chat } = require('blacksand');
 
 
 
