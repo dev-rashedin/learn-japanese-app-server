@@ -8,7 +8,6 @@ const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
 const crypto = require('crypto');
-const axios = require('axios');
 
 
 
@@ -29,7 +28,7 @@ app.use(express.json());
 
 // get random session id
 const sessionId = crypto.randomUUID(); 
-console.log(sessionId);
+// console.log(sessionId);
 
 // send email
 const sendEmail = (emailAddress, emailData) => {
@@ -151,51 +150,48 @@ async function run() {
     };
 
     // chat with ai api
-    app.post('/api/chat', async (req, res) => {
-      const { message } = req.body;
-      console.log(message);
+    // app.post('/api/chat', async (req, res) => {
+    //   const { message } = req.body;
+    //   console.log(message);
       
 
-      if (!message) {
-        return res.status(400).json({ error: 'Message is required.' });
-      }
+    //   if (!message) {
+    //     return res.status(400).json({ error: 'Message is required.' });
+    //   }
 
-      try {
-        const chatCompletion = await openai.chat.completions.create({
-          messages: [{ role: 'user', content: message }],
-          model: 'gpt-3.5-turbo',
-        });
+    //   try {
+    //     const chatCompletion = await openai.chat.completions.create({
+    //       messages: [{ role: 'user', content: message }],
+    //       model: 'gpt-3.5-turbo',
+    //     });
 
-        const reply = chatCompletion.choices[0].message.content;
+    //     const reply = chatCompletion.choices[0].message.content;
 
-        res.status(200).json({ reply });
-      } catch (error) {
-        console.error('Error in OpenAI API call:', error);
-        res.status(500).json({ error: error.message });
-      }
-    });
+    //     res.status(200).json({ reply });
+    //   } catch (error) {
+    //     console.error('Error in OpenAI API call:', error);
+    //     res.status(500).json({ error: error.message });
+    //   }
+    // });
 
     // chat with blackSand api
-app.post('/api/chat', async (req, res) => {
-  const { input } = req.body;
+// app.post('/api/chat', async (req, res) => {
+//   const { input } = req.body;
+ 
+//   try {
+//  const response = await chat({
+//    apiKey: 'bkey-i_rashedin000000000000-c9cdb878',
+//    sessionId: sessionId,
+//    input,
+//  });
 
-  try {
-    const response = await axios.post(
-      'https://chat.blacksand.cloud/api/v1/messages',
-      { input },
 
-      {
-        headers: {
-          Authorization: `Bearer bkey-i_rashedin000000000000-c9cdb878`,
-        },
-      }
-    );
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error calling Blacksand:', error.message);
-    res.status(500).json({ error: 'Failed to connect to Blacksand API' });
-  }
-});
+//  res.json(response); 
+//   } catch (error) {
+//     console.error('Error calling Blacksand:', error.message);
+//     res.status(500).json({ error: 'Failed to connect to Blacksand API' });
+//   }
+// });
 
     app.get('/users', async (req, res) => {
       try {
