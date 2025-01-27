@@ -8,6 +8,7 @@ const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
 const crypto = require('crypto');
+const axios = require('axios');
 
 
 
@@ -175,7 +176,26 @@ async function run() {
     });
 
     // chat with blackSand api
+app.post('/api/chat', async (req, res) => {
+  const { input } = req.body;
 
+  try {
+    const response = await axios.post(
+      'https://chat.blacksand.cloud/api/v1/messages',
+      { input },
+
+      {
+        headers: {
+          Authorization: `Bearer bkey-i_rashedin000000000000-c9cdb878`,
+        },
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error calling Blacksand:', error.message);
+    res.status(500).json({ error: 'Failed to connect to Blacksand API' });
+  }
+});
 
     app.get('/users', async (req, res) => {
       try {
