@@ -8,6 +8,7 @@ const port = process.env.PORT || 5000;
 const nodemailer = require('nodemailer');
 const OpenAI = require('openai');
 const crypto = require('crypto');
+const {StatusCodes, getStatusMessage} = require('http-status-toolkit');
 
 
 
@@ -472,7 +473,7 @@ const verifyAdmin = async (req, res, next) => {
   const result = await userCollection.findOne(query);
 
   if (!result || result?.role !== 'admin')
-    return res.status(401).send({ message: 'unauthorized access!!' });
+    return res.status(StatusCodes.UNAUTHORIZED).send({ message: getStatusMessage(StatusCodes.UNAUTHORIZED) });
 
   next();
 };
