@@ -466,20 +466,10 @@ app.post('/jwt', async (req, res) => {
 // middlewares
 
 // verify admin middleware
-const verifyAdmin = async (req, res, next) => {
-  const user = req.decoded;
 
-  const query = { email: user?.email };
-  const result = await userCollection.findOne(query);
-
-  if (!result || result?.role !== 'admin')
-    return res.status(StatusCodes.UNAUTHORIZED).send({ message: getStatusMessage(StatusCodes.UNAUTHORIZED) });
-
-  next();
-};
 
 app.get('/', (req, res) => {
-  res.send('learnjapanese server is running');
+  res.status(StatusCodes.OK).send('learnjapanese server is running');
 });
 
 app.listen(port, () => {
